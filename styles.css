@@ -25,7 +25,7 @@ h1 {
     font-weight: 400;
     font-style: normal;
     font-size: 5rem;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
 p {
@@ -43,7 +43,6 @@ p {
     display: flex;
     justify-content: center;
     gap: 5rem;
-    margin: 20px 0 0;
 }
 
 .candle {
@@ -79,4 +78,24 @@ p {
     background-image: linear-gradient(90deg, transparent 60%, #f293a0 40%);
     background-size: 60px 60px;
     background-repeat: repeat;
+}
+
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    vertical-align: middle;
+    padding: 0 20px;
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+}
+
+button.icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 2rem;
+    color: #ff1493;
+    padding-top: 10px;
 }

@@ -10,13 +10,19 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
     </style>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 
 <body>
     <div class="container">
         <header>
             <h1>Happy Birthday</h1>
-            <p>Blow out the candles and make a wish!</p>
+            <div class="mic-controls">
+                <p id="candle-state">Turn on your mic, then blow out the candles and make a wish.</p>
+                <button id="icon" aria-label="Enable microphone" type="button" class="material-symbols-outlined icon">
+                    mic_off
+                </button>
+            </div>
         </header>
         <main>
             <!-- <button id="lightCandles">Matches</button> -->
@@ -40,8 +46,9 @@
                     <!-- Here comes the cake! -->
                 </div>
             </div>
+        </main>
     </div>
-    </main>
+    <script src="main.js"></script>
 </body>
 
 </html>
