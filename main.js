@@ -1,7 +1,8 @@
 const state = document.getElementById('candle-state');
 const icon = document.getElementById('icon');
+const flame = document.querySelector('.candle-container');
 
-const BLOW_THRESHOLD = 50; // Adjust this value based on testing
+const BLOW_THRESHOLD = 70; // Adjust this value based on testing
 
 console.log(state);
 console.log(icon);
@@ -13,6 +14,12 @@ let analyser = null;
 let microphone = null;
 let isBlowDetectionActive = false;
 
+const candleState = {
+    LIT: 'lit',
+    BLOWN_OUT: 'blown_out'
+};
+
+let currentCandleState = candleState.LIT;
 
 const eventHandler = async (e) => {
     console.log('Event detected: ', e);
@@ -35,6 +42,7 @@ const eventHandler = async (e) => {
 }
 
 icon.addEventListener('click', eventHandler);
+
 
 // Function to analyze audio input and detect blowing
 const initBlowDetection = (stream) => {
@@ -59,6 +67,15 @@ const detectBlow = () => {
 
     if (volume > BLOW_THRESHOLD) {
         console.log('Blow detected with volume:', volume);
+        if (currentCandleState === candleState.LIT) {
+            currentCandleState = candleState.BLOWN_OUT;
+            state.textContent = 'Candles blown out! Make a wish!';
+            icon.textContent = 'mic_off';
+            flame.classList.add('blown-out');
+        }
+        isBlowDetectionActive = false; // Stop further detection
+        audioContext.close();
+        micStream.getTracks().forEach(track => track.stop());
     }
 
     requestAnimationFrame(detectBlow);

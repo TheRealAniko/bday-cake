@@ -59,6 +59,9 @@ p {
     border-radius: 60% 60% 40% 40% / 80% 80% 20% 20%;
 }
 
+.candle-container.blown-out .flame {
+    visibility: hidden;
+}
 
 .wax {
     height: 125px;
