@@ -1,6 +1,7 @@
 const state = document.getElementById('candle-state');
 const icon = document.getElementById('icon');
 const flame = document.querySelector('.candle-container');
+const fireButton = document.getElementById('fire');
 
 const BLOW_THRESHOLD = 70; // Adjust this value based on testing
 
@@ -31,7 +32,7 @@ const eventHandler = async (e) => {
         micStream = stream;
 
         console.log('Microphone access granted');
-        state.textContent = 'Microphone is on! Now blow out the candles and make a wish.';
+        state.textContent = 'Now blow out the candles and make a wish.';
         icon.textContent = 'mic';
 
         initBlowDetection(stream);
@@ -43,6 +44,29 @@ const eventHandler = async (e) => {
 
 icon.addEventListener('click', eventHandler);
 
+const handleLightCandles = () => {
+    if (currentCandleState === candleState.LIT) return;
+
+    try {
+        state.textContent = 'Tap the mic, then blow out the candles.';
+        icon.style.display = 'inline-block';
+        icon.textContent = 'mic_off';
+        flame.classList.remove('blown-out');
+        fireButton.style.display = 'none';
+
+    } catch (err) {
+        console.error('Error re-initializing blow detection:', err);
+        state.textContent = 'Error re-initializing microphone. Please refresh the page.';
+    }
+    currentCandleState = candleState.LIT;
+    isBlowDetectionActive = false;
+    micStream = null;
+    audioContext = null;
+    analyser = null;
+    microphone = null;
+}
+
+fireButton.addEventListener('click', handleLightCandles);
 
 // Function to analyze audio input and detect blowing
 const initBlowDetection = (stream) => {
@@ -69,9 +93,10 @@ const detectBlow = () => {
         console.log('Blow detected with volume:', volume);
         if (currentCandleState === candleState.LIT) {
             currentCandleState = candleState.BLOWN_OUT;
-            state.textContent = 'Candles blown out! Make a wish!';
-            icon.textContent = 'mic_off';
+            state.textContent = 'May your wish come true ✨!';
+            icon.style.display = 'none';
             flame.classList.add('blown-out');
+            fireButton.style.display = 'inline-block';
         }
         isBlowDetectionActive = false; // Stop further detection
         audioContext.close();
@@ -80,3 +105,4 @@ const detectBlow = () => {
 
     requestAnimationFrame(detectBlow);
 };
+
