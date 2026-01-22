@@ -30,7 +30,6 @@ h1 {
 
 p {
     font-size: 1.6rem;
-    margin-bottom: 10px;
 }
 
 .container {
@@ -100,5 +99,13 @@ button.icon {
     cursor: pointer;
     font-size: 2rem;
     color: #ff1493;
-    padding-top: 10px;
+}
+
+#candle-state {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#fire {
+    display: none;
 }
