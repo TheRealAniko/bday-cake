@@ -32,6 +32,21 @@ p {
     font-size: 1.6rem;
 }
 
+#steps {
+    background: #ff1493;
+    color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -56,6 +71,8 @@ p {
     width: 20px;
     background: radial-gradient(circle at 50% 80%, #ffdd55, #ff8800);
     border-radius: 60% 60% 40% 40% / 80% 80% 20% 20%;
+    transform-style: preserve-3d;
+    perspective: 1000px;
 }
 
 .candle-container.blown-out .flame {
