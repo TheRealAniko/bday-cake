@@ -7,10 +7,6 @@ const flameEls = document.querySelectorAll('.flame');
 
 const BLOW_THRESHOLD = 70; // Adjust this value based on testing
 
-console.log(state);
-console.log(icon);
-console.log(flameEls.length)
-
 let micStream = null;
 
 let audioContext = null;
@@ -32,7 +28,6 @@ const candleState = {
 let currentCandleState = candleState.LIT;
 
 const eventHandler = async (e) => {
-    console.log('Event detected: ', e);
 
     if (micStream) return;
 
@@ -40,7 +35,6 @@ const eventHandler = async (e) => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         micStream = stream;
 
-        console.log('Microphone access granted');
         state.textContent = 'Now blow out the candles and make a wish.';
         steps.textContent = '2.';
         icon.textContent = 'mic';
@@ -62,9 +56,10 @@ const handleLightCandles = () => {
         icon.style.display = 'inline-block';
         icon.textContent = 'mic_off';
         steps.textContent = '1.';
+        steps.style.visibility = 'visible';
         steps.style.display = 'inline-flex';
         flame.classList.remove('blown-out');
-        fireButton.style.visibility = 'hidden';
+        fireButton.style.display = 'none';
     } catch (err) {
         console.error('Error re-initializing blow detection:', err);
         state.textContent = 'Error re-initializing microphone. Please refresh the page.';
@@ -92,6 +87,73 @@ const initBlowDetection = (stream) => {
     detectBlow();
 };
 
+// ASCII Confetti
+const CONFETTI_SYMBOLS = [
+    "⭒",
+    "˚",
+    "⋆",
+    "⊹",
+    "₊",
+    "݁",
+    "˖",
+    "✦",
+    "✧",
+    "·",
+    "°",
+    "✶",
+];
+
+const CONFETTI_COLORS = [
+    "#FFC700",
+    "#FF0000",
+    "#2E3192",
+    "#41BBC7",
+    "#732DD1",
+    "#FF6F61",
+    "#6B8E23",
+    "#FF69B4",
+];
+
+
+const createConfetti = () => {
+    const container = document.getElementById('confetti-container');
+
+    container.innerHTML = ''; // Clear previous confetti if any
+
+    const confettiCount = 80;
+
+    for (let i = 0; i < confettiCount; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement("span");
+            confetti.className = "confetti";
+            confetti.textContent =
+                CONFETTI_SYMBOLS[Math.floor(Math.random() * CONFETTI_SYMBOLS.length)];
+
+            confetti.style.left = Math.random() * 100 + "vw";
+
+            confetti.style.fontSize = 0.8 + Math.random() * 1.2 + "rem";
+
+            confetti.style.color =
+                CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+
+            const duration = 2 + Math.random() * 2;
+            confetti.style.animationDuration = duration + "s";
+
+            confetti.style.animationDelay = Math.random() * 0.5 + "s";
+
+            const swayAmount = (Math.random() - 0.5) * 100;
+            confetti.style.setProperty("--sway", swayAmount + "px");
+
+            container.appendChild(confetti);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, (duration + 1) * 1000);
+        }, i * 50);
+    }
+}
+
+
 const detectBlow = () => {
     if (!isBlowDetectionActive) return;
 
@@ -99,7 +161,6 @@ const detectBlow = () => {
     analyser.getByteFrequencyData(dataArray);
 
     const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-    console.log('Volume:', volume);
 
     // 1) Flame tilt based on volume
 
@@ -127,8 +188,11 @@ const detectBlow = () => {
         state.textContent = 'May your wish come true ✨!';
         icon.style.display = 'none';
         flame.classList.add('blown-out');
-        steps.style.display = 'none';
+        steps.style.visibility = 'hidden';
         fireButton.style.display = 'inline-block';
+        fireButton.style.visibility = 'visible';
+
+        createConfetti();
 
         isBlowDetectionActive = false; // Stop further detection
         audioContext.close();
