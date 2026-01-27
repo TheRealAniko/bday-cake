@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Cake</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+    </style>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Happy Birthday</h1>
+            <div class="mic-controls">
+                <span id="steps">1.</span>
+                <p id="candle-state">Tap the mic, then blow out the candles.</p>
+                <button id="icon" aria-label="Enable microphone" type="button" class="material-symbols-outlined icon">
+                    mic_off
+                </button>
+                <button id="fire" aria-label="Light candle" type="button" class="material-symbols-outlined icon">
+                    mode_heat
+                </button>
+            </div>
+            <div id="confetti-container"></div>
+        </header>
+        <main>
+            <!-- <button id="lightCandles">Matches</button> -->
+            <div class="cake-container">
+                <div class="candle-container">
+                    <div class="candle small">
+                        <div class="flame"></div>
+                        <div class="wax"></div>
+                    </div>
+                    <div class="candle">
+                        <div class="flame"></div>
+                        <div class="wax"></div>
+                    </div>
+                    <div class="candle small">
+                        <div class="flame"></div>
+                        <div class="wax"></div>
+                    </div>
+                </div>
+
+                <div class="cake">
+                    <!-- Here comes the cake! -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="main.js"></script>
+</body>
+
+</html>
