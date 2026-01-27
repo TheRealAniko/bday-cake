@@ -2,8 +2,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    /* For debugging purposes */
-    /* border: 1px solid red; */
 }
 
 body {
@@ -29,7 +27,7 @@ h1 {
 }
 
 p {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
 }
 
 #steps {
@@ -38,7 +36,7 @@ p {
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 8px;
@@ -124,5 +122,30 @@ button.icon {
 }
 
 #fire {
-    display: none;
+    visibility: hidden;
+}
+
+.mic-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+#confetti-container {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 9999;
+    vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 4rem;
+    }
 }
