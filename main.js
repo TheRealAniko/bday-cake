@@ -5,7 +5,7 @@ const fireButton = document.getElementById('fire');
 const steps = document.getElementById('steps');
 const flameEls = document.querySelectorAll('.flame');
 
-const BLOW_THRESHOLD = 70; // Adjust this value based on testing
+const BLOW_THRESHOLD = 70;
 
 let micStream = null;
 
@@ -13,12 +13,47 @@ let audioContext = null;
 let analyser = null;
 let microphone = null;
 let isBlowDetectionActive = false;
+let dynamicThreshold = null;
 
 // Flame wiggle parameters
 let currentTilt = 0;
 const MAX_TILT = 25; // Maximum tilt angle in degrees
 const TILT_SMOOTHING = 0.1; // Smoothing factor for tilt changes
 const WIGGLE_START = 15;
+
+// Helper to average volume and standard deviation
+const mean = (values) => {
+    return values.reduce((sum, val) => sum + val, 0) / values.length;
+}
+
+const std = (values, m) => {
+    const variance = values.reduce((sum, val) => sum + (val - m) ** 2, 0) / values.length;
+    return Math.sqrt(variance);
+}
+
+// Calibtrate threshold based on ambient noise
+const calibrateThreshold = async (analyser, durationMs = 1000) => {
+    const samples = [];
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const start = performance.now();
+
+    while (performance.now() - start < durationMs) {
+        analyser.getByteFrequencyData(dataArray);
+
+        const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        samples.push(volume);
+
+        await new Promise((r) => setTimeout(r, 30));
+    }
+
+    const m = mean(samples);
+    const s = std(samples, m);
+
+    const threshold = m + 3 * s + 2;
+
+    return { threshold, baselineMean: m, baselineStd: s };
+};
 
 const candleState = {
     LIT: 'lit',
@@ -75,13 +110,20 @@ const handleLightCandles = () => {
 fireButton.addEventListener('click', handleLightCandles);
 
 // Function to analyze audio input and detect blowing
-const initBlowDetection = (stream) => {
+const initBlowDetection = async (stream) => {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
     microphone = audioContext.createMediaStreamSource(stream);
 
     analyser.fftSize = 512;
     microphone.connect(analyser);
+
+    state.textContent = 'Calibrating... Please be silent.';
+    const { threshold, baselineMean, baselineStd } = await calibrateThreshold(analyser, 1000);
+
+    console.log("Calibration:", { threshold, baselineMean, baselineStd });
+
+    state.textContent = 'Ready! Blow out the candles and make a wish!';
 
     isBlowDetectionActive = true;
     detectBlow();
@@ -162,11 +204,13 @@ const detectBlow = () => {
 
     const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
 
-    // 1) Flame tilt based on volume
+    // Using adaptive threshold if available
+    const thresholdToUse = dynamicThreshold ?? BLOW_THRESHOLD;
 
+    // 1) Flame tilt based on volume (scaled relative to the current threshold)
     if (currentCandleState === candleState.LIT) {
         // Normalize from WIGGLE_START to BLOW_THRESHOLD
-        const normalized = Math.max(0, Math.min(1, (volume - WIGGLE_START) / (BLOW_THRESHOLD - WIGGLE_START)));
+        const normalized = Math.max(0, Math.min(1, (volume - WIGGLE_START) / (thresholdToUse - WIGGLE_START)));
 
         const targetTilt = normalized * MAX_TILT;
 
@@ -178,8 +222,8 @@ const detectBlow = () => {
         });
     }
 
-    // 2) Detect blow
-    if (volume > BLOW_THRESHOLD && currentCandleState === candleState.LIT) {
+    // 2) Detect blow (using adaptive threshold if available)
+    if (volume > thresholdToUse && currentCandleState === candleState.LIT) {
         currentCandleState = candleState.BLOWN_OUT;
 
         currentTilt = 0; // Reset tilt for blow out animation
