@@ -195,57 +195,99 @@ const createConfetti = () => {
     }
 }
 
+// --- Adaptive / mobile-friendly detection settings ---
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// Baseline (noise floor) tracking (EMA = exponential moving average)
+let baseline = 0;                  // our running estimate of "normal" volume
+const BASELINE_ALPHA = 0.08;       // how fast baseline follows changes (0..1)
+
+// Wiggle / Blow thresholds expressed as "delta above baseline"
+const WIGGLE_DELTA = isMobile ? 6 : 10;   // when flame starts reacting
+const BLOW_DELTA = isMobile ? 14 : 20;    // when we consider it a real blow
+
+// Require the blow delta to be sustained for a few frames
+const REQUIRED_FRAMES = isMobile ? 5 : 3; // mobile needs more stability
+let blowFrames = 0;
+
+// Optional: clamp wiggle scaling
+const MAX_DELTA_FOR_WIGGLE = isMobile ? 25 : 35;
+
 
 const detectBlow = () => {
     if (!isBlowDetectionActive) return;
 
+    // 1) Read audio data from analyser
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
 
+    // 2) Compute "volume" as average energy across bins (your existing method)
     const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
 
-    // Using adaptive threshold if available
-    const thresholdToUse = dynamicThreshold ?? BLOW_THRESHOLD;
+    // 3) Update baseline (noise floor) using EMA
+    // If baseline is still 0 (first run), initialize it to current volume
+    if (baseline === 0) baseline = volume;
+    baseline = baseline + BASELINE_ALPHA * (volume - baseline);
 
-    // 1) Flame tilt based on volume (scaled relative to the current threshold)
+    // 4) Compute delta above baseline
+    const delta = volume - baseline;
+
+    // -----------------------------
+    // A) Flame wiggle (react early)
+    // -----------------------------
     if (currentCandleState === candleState.LIT) {
-        // Normalize from WIGGLE_START to BLOW_THRESHOLD
-        const normalized = Math.max(0, Math.min(1, (volume - WIGGLE_START) / (thresholdToUse - WIGGLE_START)));
+        // Normalize delta into 0..1 range for the wiggle
+        const clampedDelta = Math.max(0, Math.min(MAX_DELTA_FOR_WIGGLE, delta));
+        const normalized = clampedDelta / MAX_DELTA_FOR_WIGGLE;
 
         const targetTilt = normalized * MAX_TILT;
-
         currentTilt += (targetTilt - currentTilt) * TILT_SMOOTHING;
 
-        flameEls.forEach(el => {
+        flameEls.forEach((el) => {
             el.style.transform = `rotateZ(${currentTilt}deg)`;
-            el.style.transformOrigin = 'center bottom';
+            el.style.transformOrigin = "center bottom";
         });
     }
 
-    // 2) Detect blow (using adaptive threshold if available)
-    if (volume > thresholdToUse && currentCandleState === candleState.LIT) {
-        currentCandleState = candleState.BLOWN_OUT;
+    // -----------------------------
+    // B) Blow-out detection (stable)
+    // -----------------------------
+    if (currentCandleState === candleState.LIT) {
+        // If delta is above the blow threshold, count frames
+        if (delta > BLOW_DELTA) {
+            blowFrames += 1;
+        } else {
+            // If it drops below, decay/reset (prevents random spikes)
+            blowFrames = Math.max(0, blowFrames - 1);
+        }
 
-        currentTilt = 0; // Reset tilt for blow out animation
-        flameEls.forEach((el) => (el.style.transform = ''));
+        // Trigger blow-out only if sustained long enough
+        if (blowFrames >= REQUIRED_FRAMES) {
+            currentCandleState = candleState.BLOWN_OUT;
 
-        state.textContent = 'May your wish come true ✨!';
-        icon.style.display = 'none';
-        flame.classList.add('blown-out');
-        steps.style.visibility = 'hidden';
-        fireButton.style.display = 'inline-block';
-        fireButton.style.visibility = 'visible';
+            // Reset tilt
+            currentTilt = 0;
+            flameEls.forEach((el) => (el.style.transform = ""));
 
-        createConfetti();
+            // UI changes (your existing logic)
+            state.textContent = "May your wish come true ✨!";
+            icon.style.display = "none";
+            flame.classList.add("blown-out");
+            steps.style.visibility = "hidden";
+            fireButton.style.display = "inline-block";
+            fireButton.style.visibility = "visible";
 
-        isBlowDetectionActive = false; // Stop further detection
-        audioContext.close();
-        micStream.getTracks().forEach(track => track.stop());
+            createConfetti();
 
+            // Stop detection + release resources
+            blowFrames = 0;
+            isBlowDetectionActive = false;
+
+            audioContext.close();
+            micStream.getTracks().forEach((track) => track.stop());
+        }
     }
 
     requestAnimationFrame(detectBlow);
 };
-
-
-
+// --- END OF FILE ---
