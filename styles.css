@@ -69,8 +69,7 @@ p {
     width: 20px;
     background: radial-gradient(circle at 50% 80%, #ffdd55, #ff8800);
     border-radius: 60% 60% 40% 40% / 80% 80% 20% 20%;
-    transform-style: preserve-3d;
-    perspective: 1000px;
+    will-change: transform;
 }
 
 .candle-container.blown-out .flame {
@@ -122,7 +121,7 @@ button.icon {
 }
 
 #fire {
-    visibility: hidden;
+    display: none;
 }
 
 .mic-controls {
@@ -143,6 +142,7 @@ button.icon {
     z-index: 9999;
     vertical-align: middle;
 }
+
 
 @media (max-width: 768px) {
     h1 {

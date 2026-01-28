@@ -14,6 +14,7 @@ let analyser = null;
 let microphone = null;
 let isBlowDetectionActive = false;
 let dynamicThreshold = null;
+let confettiTimeouts = [];
 
 // Flame wiggle parameters
 let currentTilt = 0;
@@ -72,7 +73,12 @@ const eventHandler = async (e) => {
 
         state.textContent = 'Now blow out the candles and make a wish.';
         steps.textContent = '2.';
+        steps.classList.remove('hidden');
+        steps.classList.add('visible');
         icon.textContent = 'mic';
+        icon.classList.remove('hidden');
+        icon.classList.add('visible');
+        fireButton.classList.add('hidden');
 
         initBlowDetection(stream);
     } catch (err) {
@@ -86,13 +92,17 @@ icon.addEventListener('click', eventHandler);
 const handleLightCandles = () => {
     if (currentCandleState === candleState.LIT) return;
 
+    confettiTimeouts.forEach(id => clearTimeout(id));
+    confettiTimeouts = [];
+    const container = document.getElementById('confetti-container');
+    container.innerHTML = '';
+
     try {
         state.textContent = 'Tap the mic, then blow out the candles.';
         icon.style.display = 'inline-block';
         icon.textContent = 'mic_off';
-        steps.textContent = '1.';
         steps.style.visibility = 'visible';
-        steps.style.display = 'inline-flex';
+        steps.textContent = '1.';
         flame.classList.remove('blown-out');
         fireButton.style.display = 'none';
     } catch (err) {
@@ -159,13 +169,15 @@ const CONFETTI_COLORS = [
 
 const createConfetti = () => {
     const container = document.getElementById('confetti-container');
-
     container.innerHTML = ''; // Clear previous confetti if any
+
+    confettiTimeouts.forEach(id => clearTimeout(id));
+    confettiTimeouts = [];
 
     const confettiCount = 80;
 
     for (let i = 0; i < confettiCount; i++) {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             const confetti = document.createElement("span");
             confetti.className = "confetti";
             confetti.textContent =
@@ -188,10 +200,14 @@ const createConfetti = () => {
 
             container.appendChild(confetti);
 
-            setTimeout(() => {
+            const romoveId = setTimeout(() => {
                 confetti.remove();
             }, (duration + 1) * 1000);
+
+            confettiTimeouts.push(romoveId);
         }, i * 50);
+
+        confettiTimeouts.push(timeoutId);
     }
 }
 
@@ -200,11 +216,11 @@ const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 // Baseline (noise floor) tracking (EMA = exponential moving average)
 let baseline = 0;                  // our running estimate of "normal" volume
-const BASELINE_ALPHA = 0.08;       // how fast baseline follows changes (0..1)
+const BASELINE_ALPHA = isMobile ? 0.04 : 0.08;       // how fast baseline follows changes (0..1)
 
 // Wiggle / Blow thresholds expressed as "delta above baseline"
 const WIGGLE_DELTA = isMobile ? 6 : 10;   // when flame starts reacting
-const BLOW_DELTA = isMobile ? 10 : 20;    // when we consider it a real blow
+const BLOW_DELTA = isMobile ? 10 : 24;    // when we consider it a real blow
 
 // Require the blow delta to be sustained for a few frames
 const REQUIRED_FRAMES = isMobile ? 5 : 3; // mobile needs more stability
@@ -269,14 +285,12 @@ const detectBlow = () => {
             currentTilt = 0;
             flameEls.forEach((el) => (el.style.transform = ""));
 
-            // UI changes (your existing logic)
+            // UI changes
             state.textContent = "May your wish come true ✨!";
             icon.style.display = "none";
-            flame.classList.add("blown-out");
             steps.style.visibility = "hidden";
+            flame.classList.add("blown-out");
             fireButton.style.display = "inline-block";
-            fireButton.style.visibility = "visible";
-
             createConfetti();
 
             // Stop detection + release resources
