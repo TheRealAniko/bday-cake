@@ -204,7 +204,7 @@ const BASELINE_ALPHA = 0.08;       // how fast baseline follows changes (0..1)
 
 // Wiggle / Blow thresholds expressed as "delta above baseline"
 const WIGGLE_DELTA = isMobile ? 6 : 10;   // when flame starts reacting
-const BLOW_DELTA = isMobile ? 14 : 20;    // when we consider it a real blow
+const BLOW_DELTA = isMobile ? 10 : 20;    // when we consider it a real blow
 
 // Require the blow delta to be sustained for a few frames
 const REQUIRED_FRAMES = isMobile ? 5 : 3; // mobile needs more stability
